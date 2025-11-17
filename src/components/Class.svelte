@@ -1,7 +1,7 @@
 <script>
   import { CLASSES } from "$lib";
 
-  const { title } = $props();
+  const { id } = $props();
 </script>
 
 <div
@@ -9,13 +9,10 @@
   draggable="true"
   ondragstart={() => {
     event.dataTransfer.clearData();
-    event.dataTransfer.setData(
-      CLASSES.find((val) => val.title === title).id,
-      ""
-    );
+    event.dataTransfer.setData(id, "");
   }}
 >
-  {title}
+  {CLASSES.find((val) => val.id === id).title}
 </div>
 
 <style>

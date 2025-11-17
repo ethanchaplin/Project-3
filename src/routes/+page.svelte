@@ -23,43 +23,53 @@
     "Summer 2026",
     "Fall 2026",
   ];
+  const percentComplete = $state(75);
 </script>
 
 <nav></nav>
+<div class="info">
+  <div>
+    <h1>Welcome, Ethan!</h1>
+    <p>Cumulative GPA: <b>3.22</b></p>
+    <p>Credits Taken: <b>119</b></p>
+  </div>
+  <div class="breakdown">
+    <h1>Degree Completion</h1>
+    <svg viewBox="0 0 100 100" width="200" height="200">
+      <circle
+        cx="50"
+        cy="50"
+        r="45"
+        fill="none"
+        stroke="#e6e6e6"
+        stroke-width="10"
+      />
 
-<!-- <svg viewBox="0 0 100 100" width="200" height="200">
-  <circle
-    cx="50"
-    cy="50"
-    r="45"
-    fill="none"
-    stroke="#e6e6e6"
-    stroke-width="10"
-  />
-
-  <circle
-    cx="50"
-    cy="50"
-    r="45"
-    fill="none"
-    stroke="red"
-    stroke-width="10"
-    stroke-dasharray="282.74 282.74"
-    stroke-dashoffset="113.1"
-    transform="rotate(-90 50 50)"
-  />
-  <text x="50" y="50"> 66% </text>
-</svg> -->
-<div class="breakdown">
-  <h1>Welcome, Ethan!</h1>
+      <circle
+        cx="50"
+        cy="50"
+        r="45"
+        fill="none"
+        stroke="red"
+        stroke-width="10"
+        stroke-dasharray="282.74 282.74"
+        stroke-dashoffset={282 - (282 * percentComplete) / 100}
+        transform="rotate(-90 50 50)"
+      />
+      <text x="54" y="54" text-anchor="middle"> {percentComplete}% </text>
+    </svg>
+  </div>
 </div>
 <div class="courses">
   <div class="course-list">
     <h2>Required Courses</h2>
     {#each CLASSES as class_object}
       <div class="semester">
-        <Dropdown text={class_object.title}>
-          <Class title={class_object.title}></Class>
+        <Dropdown text={"First Year"}>
+          <Class id={"cs2023"}></Class>
+          <Class id={"cs2023"}></Class>
+          <Class id={"cs2023"}></Class>
+          <Class id={"cs2023"}></Class>
         </Dropdown>
       </div>
     {/each}
@@ -79,11 +89,17 @@
     position: sticky;
     top: 0px;
   }
-  .breakdown {
-    width: 100%;
+  .info {
     height: 300px;
     border-bottom: 3px solid #444444;
     padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+  }
+  .breakdown {
+    display: flex;
+    flex-direction: column;
+    align-items: end;
   }
   .courses {
     display: flex;
@@ -96,10 +112,10 @@
     border-right: 3px solid #444444;
   }
   .semester-view {
-    background-color: #b2b2b2;
-    width: calc(100vw - 350px);
+    background-color: #d0d0d0;
     display: grid;
-    grid-template-columns: auto auto auto;
+    grid-template-columns: 1fr 1fr 1fr;
+    width: 100%;
     gap: 15px;
     padding: 15px;
     overflow-y: scroll;
