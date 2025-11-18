@@ -16,4 +16,10 @@
 </div>
 
 <style>
+  .draggable-class:nth-child(odd) {
+    background-color: #eee;
+  }
+  .draggable-class {
+    padding: 5px 0;
+  }
 </style>

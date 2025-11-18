@@ -1,7 +1,7 @@
 <script>
   import { CLASSES } from "$lib";
 
-  const { semester } = $props();
+  const { semester, listClass, showSchedule } = $props();
   let classes = $state(["", "", "", ""]);
   let prevNames = $state(["", "", "", ""]);
   const handleClassDrag = (event, idx) => {
@@ -20,14 +20,37 @@
     event.preventDefault();
     event.target.style.backgroundColor = "";
     const classId = event.dataTransfer.types[0];
-    const classTitle = CLASSES.find((val) => val.id === classId).title;
-    classes[idx] = classTitle;
-    prevNames[idx] = classTitle;
+    const classObj = CLASSES.find((val) => val.id === classId);
+    classes[idx] = classObj.title;
+    prevNames[idx] = classObj.title;
+    listClass(classObj.id);
   };
 </script>
 
-<div class="semester">
-  <h2>{semester}</h2>
+<div
+  class="semester"
+  tabindex="1"
+  onkeydown={(event) => {
+    if (event.key === "Enter") showSchedule(classes);
+  }}
+  onclick={() => showSchedule(classes)}
+>
+  <div class="title-credits">
+    <h2>{semester}</h2>
+    <p>
+      Credits: <b
+        >{classes
+          .map((val) => {
+            const cls = CLASSES.find((cls) => cls.title === val);
+            if (cls !== undefined) {
+              return cls.credits;
+            }
+            return 0;
+          })
+          .reduce((a, b) => a + b)}</b
+      >
+    </p>
+  </div>
   <div class="sem-classes">
     {#each classes as cls, i}
       <div
@@ -42,7 +65,8 @@
     <div
       class="add-class"
       tabindex="1"
-      onclick={() => {
+      onclick={(ev) => {
+        ev.stopPropagation();
         classes.push("");
       }}
       onkeydown={(event) => {
@@ -59,7 +83,11 @@
     height: 450px;
     border-radius: 15px;
     background-color: white;
+    cursor: pointer;
     h2 {
+      padding: 10px;
+    }
+    p {
       padding: 10px;
     }
   }
@@ -71,6 +99,13 @@
     align-items: center;
     flex-direction: column;
     overflow-y: auto;
+    text-align: center;
+    text-overflow: ellipsis;
+  }
+  .title-credits {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
   .semester-drag {
     width: 95%;
