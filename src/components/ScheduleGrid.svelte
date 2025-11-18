@@ -1,4 +1,14 @@
 <script>
+  /**
+   * AI NOTE
+   *
+   * This component was originally written by humans,
+   * but ChatGPT was used in the assistance of functionality
+   * and creating functions like the class color chooser.
+   * This wasn't a case of us typing in "make me a scheduler",
+   * rather we gave it our own code, and the ideas we had,
+   * and it provided input and snippets on how to achieve that.
+   */
   import { CLASSES } from "$lib";
 
   export let courses = [];
@@ -15,50 +25,41 @@
     (_, i) => START_HOUR + i
   );
 
-  // ---------------------------
-  // Time helpers
-  // ---------------------------
-  function formatHour(h) {
+  const formatHour = (h) => {
     const label = h % 12 === 0 ? 12 : h % 12;
     const ampm = h < 12 ? "am" : "pm";
     return `${label}${ampm}`;
-  }
+  };
 
-  function timeToMinutes(t) {
+  const timeToMinutes = (t) => {
     if (!t) return START_MIN;
     const [h = 0, m = 0] = String(t).split(":").map(Number);
     return h * 60 + m;
-  }
+  };
 
-  function overlaps(a, b) {
+  const overlaps = (a, b) => {
     const aStart = timeToMinutes(a.startTime);
     const aEnd = timeToMinutes(a.endTime);
     const bStart = timeToMinutes(b.startTime);
     const bEnd = timeToMinutes(b.endTime);
     return aStart < bEnd && bStart < aEnd;
-  }
+  };
 
-  // ---------------------------
-  // Color for course
-  // ---------------------------
-  function hashStr(s) {
+  const hashStr = (s) => {
     let h = 2166136261 >>> 0;
     for (let i = 0; i < s.length; i++) {
       h ^= s.charCodeAt(i);
       h = Math.imul(h, 16777619) >>> 0;
     }
     return h;
-  }
+  };
 
-  function getColorForCourse(courseId) {
+  const getColorForCourse = (courseId) => {
     const h = hashStr(courseId) % 360;
     return `hsl(${h}, 65%, 55%)`;
-  }
+  };
 
-  // ---------------------------
-  // Build section blocks
-  // ---------------------------
-  function buildSectionBlock(cls, sec) {
+  const buildSectionBlock = (cls, sec) => {
     return {
       courseId: cls.id,
       name: cls.title,
@@ -73,9 +74,9 @@
       location: `${sec.building ?? ""} ${sec.room ?? ""}`.trim(),
       isHypothetical: true,
     };
-  }
+  };
 
-  function getAllSectionBlocks(list) {
+  const getAllSectionBlocks = (list) => {
     const blocks = [];
     for (const title of list) {
       const cls = CLASSES.find((c) => c.title === title);
@@ -85,34 +86,24 @@
       }
     }
     return blocks;
-  }
+  };
 
-  // ---------------------------
-  // State
-  // ---------------------------
   let originalBlocks = [];
-  let blocks = []; // Current visible blocks
-  let selectedSections = {}; // { courseId: sectionId }
+  let blocks = [];
+  let selectedSections = {};
 
-  function keyOf(b) {
+  const keyOf = (b) => {
     return `${b.courseId}-${b.sectionId}`;
-  }
+  };
 
-  // ---------------------------
-  // Handle clicks
-  // ---------------------------
-  function onSelectHypo(chosen) {
-    // 1) mark chosen as solid
+  const onSelectHypo = (chosen) => {
     selectedSections[chosen.courseId] = chosen.sectionId;
     chosen.isHypothetical = false;
 
-    // 2) remove other sections of same course + overlapping hypotheticals on the same day
     blocks = blocks.filter((b) => {
-      // remove other sections of same course
       if (b.courseId === chosen.courseId && b.sectionId !== chosen.sectionId)
         return false;
 
-      // only remove hypotheticals that overlap AND share at least one day with chosen
       if (
         b.isHypothetical &&
         b.days.some((d) => chosen.days.includes(d)) &&
@@ -122,22 +113,17 @@
 
       return true;
     });
-  }
+  };
 
-  function onSolidClick(block) {
-    // 1) Remove the block from selectedSections
+  const onSolidClick = (block) => {
     delete selectedSections[block.courseId];
 
-    // 2) Remove the solid block itself
     blocks = blocks.filter(
       (b) => !(b.courseId === block.courseId && b.sectionId === block.sectionId)
     );
 
-    // 3) Current solids after removal
     const currentSolids = blocks.filter((b) => !b.isHypothetical);
 
-    // 4) Restore all sections of the unselected course as hypotheticals
-    //    BUT filter out any that conflict with current solids
     const courseSections = originalBlocks
       .filter((ob) => ob.courseId === block.courseId)
       .filter(
@@ -148,7 +134,6 @@
       )
       .map((c) => ({ ...c, isHypothetical: true }));
 
-    // 5) Restore other courses’ sections that don’t conflict with current solids
     const otherSections = originalBlocks
       .filter((ob) => ob.courseId !== block.courseId)
       .filter(
@@ -159,7 +144,6 @@
       )
       .map((c) => ({ ...c, isHypothetical: true }));
 
-    // 6) Merge and deduplicate
     const newBlocks = [...blocks, ...courseSections, ...otherSections];
     const seen = new Set();
     blocks = newBlocks.filter((b) => {
@@ -168,15 +152,11 @@
       seen.add(k);
       return true;
     });
-  }
+  };
 
-  // ---------------------------
-  // Reactive: rebuild originalBlocks + blocks when courses change
-  // ---------------------------
   $: if (courses) {
     originalBlocks = getAllSectionBlocks(courses);
 
-    // Keep valid selectedSections
     const validSelections = {};
     for (const s of Object.keys(selectedSections)) {
       const secId = selectedSections[s];
@@ -188,16 +168,12 @@
     }
     selectedSections = validSelections;
 
-    // Initialize blocks if empty
     if (blocks.length === 0) {
       blocks = originalBlocks.map((b) => ({ ...b, isHypothetical: true }));
     }
   }
 
-  // ---------------------------
-  // Column layout (like Google Calendar)
-  // ---------------------------
-  function buildColumns(blocksForDay) {
+  const buildColumns = (blocksForDay) => {
     const sorted = [...blocksForDay].sort(
       (a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime)
     );
@@ -244,7 +220,7 @@
     }
 
     return results;
-  }
+  };
 
   $: dayBlocks = DAYS.reduce((map, d) => {
     const list = blocks.filter((b) => b.days.includes(d));
@@ -252,20 +228,20 @@
     return map;
   }, {});
 
-  function blockStyle(block) {
+  const blockStyle = (block) => {
     const start = Math.max(START_MIN, timeToMinutes(block.startTime));
     const end = Math.min(END_MIN, timeToMinutes(block.endTime));
     const duration = Math.max(end - start, 15);
     const top = ((start - START_MIN) / RANGE_MIN) * 100;
     const height = (duration / RANGE_MIN) * 100;
     return `top:${top}%;height:${height}%;`;
-  }
+  };
 
-  function columnStyle({ column, totalColumns }) {
+  const columnStyle = ({ column, totalColumns }) => {
     const width = 100 / 5;
     const left = width * column;
     return `left:${left}%;width:${94}%;`;
-  }
+  };
 
   window.addEventListener("keydown", (event) => {
     if (event.key === "Enter") hide();
