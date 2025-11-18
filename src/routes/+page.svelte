@@ -5,6 +5,8 @@
   import ScheduleGrid from "../components/ScheduleGrid.svelte";
   import ScheduleView from "../components/ScheduleView.svelte";
   import SemesterCard from "../components/SemesterCard.svelte";
+  import RadialProgress from "../components/RadialProgress.svelte";
+  import ucLogo from "$lib/assets/uc_logo.png";
   const semesters = [
     "Spring 2021",
     "Summer 2021",
@@ -25,15 +27,37 @@
     "Summer 2026",
     "Fall 2026",
   ];
-  const percentComplete = $state(75);
   const draggedClasses = $state([]);
   let scheduleViewClasses = $state([]);
   let showScheduleView = $state(false);
+  const creditsFinished = $state(98);
+  const creditsNeeded = $state(120);
+  const percent = () =>
+    creditsNeeded ? Math.min(100, (creditsFinished / creditsNeeded) * 100) : 0;
+  const radialBackground = () =>
+    `conic-gradient(#e00122 0% ${percent()}%, #1f1f1f ${percent()}% 100%)`;
 </script>
 
 {#if showScheduleView}
-  <div class="schedule-bg" onclick={() => (showScheduleView = false)}>
-    <div class="schedule-popup">
+  <div
+    class="schedule-bg"
+    role="button"
+    tabindex="0"
+    aria-label="Close schedule view"
+    onclick={() => (showScheduleView = false)}
+    onkeydown={(ev) => {
+      if (ev.key === "Enter" || ev.key === "Escape" || ev.key === " ")
+        showScheduleView = false;
+    }}
+  >
+    <div
+      class="schedule-popup"
+      role="dialog"
+      aria-modal="true"
+      tabindex="0"
+      onclick={(ev) => ev.stopPropagation()}
+      onkeydown={(ev) => ev.stopPropagation()}
+    >
       <ScheduleGrid
         courses={scheduleViewClasses}
         hide={() => (showScheduleView = false)}
@@ -51,7 +75,9 @@
     viewBox="0 0 460.775 460.775"
     xml:space="preserve"
     onclick={() => (showScheduleView = false)}
-    tabindex="1"
+    tabindex="0"
+    role="button"
+    aria-label="Close"
     onkeydown={(ev) => {
       if (ev.key === "Enter") showScheduleView = false;
     }}
@@ -66,12 +92,28 @@
     />
   </svg>
 {/if}
-<nav></nav>
-<div class="info">
-  <h1>Welcome, Ethan!</h1>
-  <p>Cumulative GPA: <b>3.22</b></p>
-  <p>Credits Taken: <b>119</b></p>
-  <!-- <svg viewBox="0 0 100 100" width="200" height="200">
+<nav>
+  <div class="nav-content">
+    <div class="greeting">Hello, Ethan</div>
+    <div class="stats">
+      GPA <b>3.22</b> • Credits <b>{creditsFinished}</b>/<span
+        >{creditsNeeded}</span
+      >
+    </div>
+  </div>
+  <img class="uc-logo" src={ucLogo} alt="University of Cincinnati logo" />
+</nav>
+
+<div class="radial-fab">
+  <RadialProgress
+    percent={percent()}
+    size={112}
+    primary={`${Math.round(percent())}%`}
+    secondary={`${creditsFinished}/${creditsNeeded}`}
+  />
+</div>
+
+<!-- <svg viewBox="0 0 100 100" width="200" height="200">
       <circle
         cx="50"
         cy="50"
@@ -94,7 +136,6 @@
       />
       <text x="54" y="54" text-anchor="middle"> {percentComplete}% </text>
     </svg> -->
-</div>
 <div class="courses">
   <div class="course-list">
     <h2>Required Courses</h2>
@@ -165,12 +206,38 @@
 
 <style>
   nav {
-    background-color: red;
-    height: 100px;
-    filter: drop-shadow(2px 2px 4px #00000088);
-    position: sticky;
-    z-index: 100;
-    top: 0px;
+    background-color: #d00000;
+    height: 56px;
+    filter: drop-shadow(2px 2px 4px #00000066);
+    position: static;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-right: 12px;
+  }
+  .nav-content {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    color: #fff;
+    margin-left: 16px;
+  }
+  .uc-logo {
+    height: 36px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+    filter: brightness(0) invert(1);
+  }
+  .greeting {
+    font-family: Georgia, "Times New Roman", Times, serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.3px;
+  }
+  .stats {
+    opacity: 0.95;
+    font-size: 14px;
   }
   .close-popup {
     position: fixed;
@@ -194,23 +261,10 @@
     z-index: 101;
     background-color: #000000aa;
   }
-  .info {
-    height: auto;
-    border-bottom: 3px solid #444444;
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .breakdown {
-    display: flex;
-    flex-direction: column;
-    align-items: end;
-  }
   .courses {
     display: flex;
     width: 100%;
-    height: calc(100vh - 100px);
+    height: calc(100vh - 56px);
   }
   .class-list {
     display: flex;
@@ -233,5 +287,11 @@
     gap: 15px;
     padding: 15px;
     overflow-y: scroll;
+  }
+  .radial-fab {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 110;
   }
 </style>
